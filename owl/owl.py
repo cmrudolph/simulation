@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+# Simulation of the children's game "Hoot Owl Hoot". The game involves simple
+# decision making, which provides an opportunity to simulate and compare
+# strategies.
+
 import attr
 import pprint
 import random
