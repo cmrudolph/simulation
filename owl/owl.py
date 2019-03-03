@@ -7,6 +7,7 @@
 import attr
 import pprint
 import random
+import time
 from enum import Enum
 
 NEST = 888
@@ -86,10 +87,12 @@ class Space(object):
 @attr.s
 class Game(object):
     owls = attr.ib()
+    _capture_trace = attr.ib(default=False)
     _spaces = attr.ib(init=False)
     starting_owls = attr.ib(init=False)
     suns = attr.ib(init=False, default=0)
     actions = attr.ib(init=False, default=0)
+    _trace_lines = attr.ib(init=False, factory=list)
 
     @_spaces.default
     def _init_spaces(self):
@@ -116,6 +119,7 @@ class Game(object):
     def add_sun(self):
         self.actions += 1
         self.suns += 1
+        self._trace_current_state()
 
     def get_occupied(self):
         return [i for i, v in enumerate(self._spaces) if v.owl is not None]
@@ -126,32 +130,24 @@ class Game(object):
 
         return color_match and is_open
 
+    def _trace_current_state(self):
+        if self._capture_trace:
+            trace_line = ""
+            for i in range(len(self._spaces)):
+                if i > 0 and i % 5 == 0:
+                    trace_line += "|"
+                owl = self._spaces[i].owl
+                trace_line += " " if owl is None else str(owl)
+            in_nest = self.starting_owls - self.owls
+            trace_line += f" || N:{in_nest} S:{self.suns}"
+            self._trace_lines.append(trace_line)
+
     def compute_end(self, start, color):
         end = start + 1
         while end < len(self._spaces) and not self._can_move_to(end, color):
             end += 1
 
         return NEST if end == len(self._spaces) else end
-
-    def print_header(self):
-        for i in range(len(self._spaces)):
-            if i > 0 and i % 5 == 0:
-                print("|", end="")
-            print(self._spaces[i].color.name[0], end="")
-        print()
-
-    def print_stats(self):
-        print(f"Won:{self.is_win()}; Loss:{self.is_loss()}; " +
-              f"Act:{self.actions}; Sun:{self.suns}; Owls:{self.owls}")
-
-    def print_state(self):
-        for i in range(len(self._spaces)):
-            if i > 0 and i % 5 == 0:
-                print("|", end="")
-            owl = self._spaces[i].owl
-            owl_str = " " if owl is None else owl
-            print(owl_str, end="")
-        print(f" -- N({self.starting_owls - self.owls}) -- S({self.suns})")
 
     def move_owl(self, start, end):
         assert start >= 0, "Start too small"
@@ -167,13 +163,47 @@ class Game(object):
             self._spaces[end].owl = self._spaces[start].owl
         self._spaces[start].owl = None
         self.actions += 1
+        self._trace_current_state()
 
     def color_at(self, idx):
         return self._spaces[idx].color
 
+    def get_trace(self):
+        if not self._capture_trace:
+            return ""
 
-def play(owls, players, draw, select):
-    game = Game(owls)
+        lines = []
+        header = ""
+        for i in range(len(self._spaces)):
+            if i > 0 and i % 5 == 0:
+                header += "|"
+            header += self._spaces[i].color.name[0].upper()
+
+        stats = f"Won:{self.is_win()}; Loss:{self.is_loss()}; " \
+                f"Act:{self.actions}; Sun:{self.suns}; Owls:{self.owls}"
+
+        lines.append(header)
+        lines.extend(self._trace_lines)
+        lines.append(stats)
+
+        return"\n".join(lines)
+
+
+@attr.s(frozen=True)
+class Result(object):
+    owls = attr.ib()
+    players = attr.ib()
+    actions = attr.ib()
+    strategy = attr.ib()
+    suns = attr.ib()
+    won = attr.ib()
+    elapsed = attr.ib()
+    trace = attr.ib()
+
+
+def play(owls, players, draw, select, trace=False):
+    start_time = time.perf_counter()
+    game = Game(owls, capture_trace=trace)
     hands = []
     for p in range(players):
         hand = Hand()
@@ -183,7 +213,6 @@ def play(owls, players, draw, select):
         hands.append(hand)
 
     hand_idx = 0
-    game.print_header()
     while not (game.is_win() or game.is_loss()):
         hand = hands[hand_idx]
         sun = hand.find_sun()
@@ -206,9 +235,6 @@ def play(owls, players, draw, select):
         if hand_idx == len(hands):
             hand_idx = 0
 
-        game.print_state();
-    game.print_stats()
-
-
-def first_owl_first_card(game, hands, hand_idx):
-    return (game.get_occupied()[0], hands[hand_idx].cards[0])
+    elapsed = time.perf_counter() - start_time
+    return Result(owls, players, game.actions, select.__name__, game.suns,
+                  game.is_win(), elapsed, game.get_trace())
