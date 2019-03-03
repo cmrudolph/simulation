@@ -1,18 +1,18 @@
-import owl
+from owl import Card, Color, Hand
 
-red = owl.Card.create_colored(owl.Color.red)
-green = owl.Card.create_colored(owl.Color.green)
-sun = owl.Card.create_sun()
+red = Card.create_colored(Color.red)
+green = Card.create_colored(Color.green)
+sun = Card.create_sun()
 
 
 def test_hand_empty():
-    h = owl.Hand()
+    h = Hand()
     assert h.cards == []
     assert h.find_sun() is None
 
 
 def test_hand_has_sun():
-    h = owl.Hand()
+    h = Hand()
     h.add(green)
     h.add(sun)
     assert h.cards == [green, sun]
@@ -20,7 +20,7 @@ def test_hand_has_sun():
 
 
 def test_hand_no_sun():
-    h = owl.Hand()
+    h = Hand()
     h.add(green)
     h.add(red)
     assert h.cards == [green, red]
@@ -28,7 +28,7 @@ def test_hand_no_sun():
 
 
 def test_hand_removing():
-    h = owl.Hand()
+    h = Hand()
     h.add(green)
     h.add(red)
     assert h.cards == [green, red]

@@ -46,7 +46,7 @@ class Card(object):
 
 @attr.s
 class Hand(object):
-    cards = attr.ib(factory=list)
+    cards = attr.ib(init=False, factory=list)
 
     def add(self, card):
         self.cards.append(card)
@@ -58,13 +58,19 @@ class Hand(object):
         self.cards.remove(card)
 
 
+@attr.s
 class Deck(object):
-    def __init__(self):
-        self._cards = []
-        self._cards.extend([Card.create_sun()] * 14)
+    _cards = attr.ib(init=False)
+
+    @_cards.default
+    def _init_cards(self):
+        result = []
+        result.extend([Card.create_sun()] * 14)
         for color in Color:
-            self._cards.extend([Card.create_colored(color)] * 6)
-        random.shuffle(self._cards)
+            result.extend([Card.create_colored(color)] * 6)
+        random.shuffle(result)
+
+        return result
 
     def draw(self):
         return self._cards.pop()
@@ -74,22 +80,32 @@ class Deck(object):
 class Space(object):
     index = attr.ib()
     color = attr.ib()
-    owl = attr.ib(default=None)
+    owl = attr.ib(init=False, default=None)
 
 
-class Board(object):
-    def __init__(self, owls):
-        self._spaces = []
-        self.owls = owls
-        self.suns = 0
-        self.actions = 0
+@attr.s
+class Game(object):
+    owls = attr.ib()
+    _spaces = attr.ib(init=False)
+    starting_owls = attr.ib(init=False)
+    suns = attr.ib(init=False, default=0)
+    actions = attr.ib(init=False, default=0)
 
+    @_spaces.default
+    def _init_spaces(self):
+        result = []
         for i, bs in enumerate(BOARD_SPACES):
-            self._spaces.append(Space(i, Color(bs)))
+            result.append(Space(i, Color(bs)))
 
-        for i in range(owls):
+        for i in range(self.owls):
             owl_num = i + 1
-            self._spaces[5-i].owl = owl_num
+            result[5-i].owl = owl_num
+
+        return result
+
+    @starting_owls.default
+    def _init_starting_owls(self):
+        return self.owls
 
     def is_win(self):
         return self.owls == 0
@@ -117,21 +133,25 @@ class Board(object):
 
         return NEST if end == len(self._spaces) else end
 
-    def print_state(self):
-        print(f"Act:{self.actions} | Sun:{self.suns} | Owls:{self.owls}")
+    def print_header(self):
         for i in range(len(self._spaces)):
             if i > 0 and i % 5 == 0:
                 print("|", end="")
             print(self._spaces[i].color.name[0], end="")
         print()
 
+    def print_stats(self):
+        print(f"Won:{self.is_win()}; Loss:{self.is_loss()}; " +
+              f"Act:{self.actions}; Sun:{self.suns}; Owls:{self.owls}")
+
+    def print_state(self):
         for i in range(len(self._spaces)):
             if i > 0 and i % 5 == 0:
                 print("|", end="")
             owl = self._spaces[i].owl
             owl_str = " " if owl is None else owl
             print(owl_str, end="")
-        print()
+        print(f" -- N({self.starting_owls - self.owls}) -- S({self.suns})")
 
     def move_owl(self, start, end):
         assert start >= 0, "Start too small"
@@ -150,3 +170,45 @@ class Board(object):
 
     def color_at(self, idx):
         return self._spaces[idx].color
+
+
+def play(owls, players, draw, select):
+    game = Game(owls)
+    hands = []
+    for p in range(players):
+        hand = Hand()
+        hand.add(draw())
+        hand.add(draw())
+        hand.add(draw())
+        hands.append(hand)
+
+    hand_idx = 0
+    game.print_header()
+    while not (game.is_win() or game.is_loss()):
+        hand = hands[hand_idx]
+        sun = hand.find_sun()
+
+        if sun is not None:
+            game.add_sun()
+            hand.remove(sun)
+        else:
+            owl, card = select(game, hands, hand_idx)
+            hand.remove(card)
+
+            end = game.compute_end(owl, card.color)
+            game.move_owl(owl, end)
+
+        drawn = draw()
+        if drawn is not None:
+            hand.add(drawn)
+
+        hand_idx += 1
+        if hand_idx == len(hands):
+            hand_idx = 0
+
+        game.print_state();
+    game.print_stats()
+
+
+def first_owl_first_card(game, hands, hand_idx):
+    return (game.get_occupied()[0], hands[hand_idx].cards[0])

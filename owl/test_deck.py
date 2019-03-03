@@ -1,10 +1,10 @@
-import owl
+from owl import Deck
 from collections import Counter
 
 
 def test_deck():
-    d1 = owl.Deck()
-    d2 = owl.Deck()
+    d1 = Deck()
+    d2 = Deck()
 
     cards1 = []
     cards2 = []
