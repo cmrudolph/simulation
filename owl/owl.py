@@ -80,7 +80,9 @@ class Deck(object):
         return result
 
     def draw(self):
-        return self._cards.pop()
+        if len(self._cards) > 0:
+            return self._cards.pop()
+        return None
 
 
 @attr.s
