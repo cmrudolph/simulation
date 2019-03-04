@@ -31,7 +31,7 @@ class Color(Enum):
     yellow = 6
 
 
-@attr.s(frozen=True)
+@attr.s(frozen=True, repr=False)
 class Card(object):
     sun = attr.ib()
     color = attr.ib()
@@ -43,6 +43,12 @@ class Card(object):
     @classmethod
     def create_colored(cls, color):
         return cls(False, color)
+
+    def __repr__(self):
+        if self.sun:
+            return "S"
+        else:
+            return self.color.name[0].upper()
 
 
 @attr.s
