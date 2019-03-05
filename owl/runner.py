@@ -21,8 +21,8 @@ def run_func(func, write, runs, parallel):
         results = map(func, range(runs))
 
     for r in results:
-        write(f"{r.strategy}|{r.players}|{r.owls}|{r.actions}|{r.suns}|" +
-              f"{r.won}|{r.elapsed}")
+        write(f"{r.strategy},{r.players},{r.owls},{r.actions},{r.suns}," +
+              f"{1 if r.won else 0},1,{r.elapsed}")
 
 
 def run(runs, write, parallel):
@@ -40,4 +40,5 @@ if __name__ == "__main__":
     runs = int(sys.argv[1])
     file_name = "results.txt"
     with open(file_name, "w") as f:
+        f.write("Strategy,Players,Owls,Actions,Suns,Won,Played,Elapsed\n")
         run(runs, lambda x: f.write(x + "\n"), parallel=True)

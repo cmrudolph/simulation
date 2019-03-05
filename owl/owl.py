@@ -129,7 +129,8 @@ class Game(object):
         self.suns += 1
         self._trace_current_state()
 
-    def get_occupied(self):
+    @property
+    def occupied(self):
         return [i for i, v in enumerate(self._spaces) if v.owl is not None]
 
     def _can_move_to(self, idx, color):
@@ -229,7 +230,7 @@ def play(owls, players, draw, select, trace=False):
             game.add_sun()
             hand.remove(sun)
         else:
-            owl, card = select(game, hands, hand_idx)
+            owl, card = select(game, hands, hand_idx, random.randint)
             hand.remove(card)
 
             end = game.compute_end(owl, card.color)

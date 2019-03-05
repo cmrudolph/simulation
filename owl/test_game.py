@@ -8,7 +8,7 @@ def test_game_init():
     assert g.is_win() is False
     assert g.is_loss() is False
     assert g.suns == 0
-    assert g.get_occupied() == [3, 4, 5]
+    assert g.occupied == [3, 4, 5]
 
 
 def test_win():
@@ -66,7 +66,7 @@ def test_move_owl():
     g = Game(3)
     g.move_owl(3, 7)
 
-    assert g.get_occupied() == [4, 5, 7]
+    assert g.occupied == [4, 5, 7]
 
 
 def test_compute_end_no_obstacles():
