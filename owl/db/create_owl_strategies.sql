@@ -1,0 +1,5 @@
+CREATE TABLE owl_strategies(
+ id SERIAL PRIMARY KEY,
+ name VARCHAR(100) UNIQUE NOT NULL,
+ friendly_name VARCHAR(100) NOT NULL
+);

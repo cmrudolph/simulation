@@ -22,7 +22,14 @@ def run_func(func, write, runs, parallel):
 
     for r in results:
         write(f"{r.strategy},{r.players},{r.owls},{r.actions},{r.suns}," +
-              f"{1 if r.won else 0},1,{r.elapsed}")
+              f"{1 if r.won else 0},{r.elapsed}")
+
+
+def write_strategies(write):
+    all_strategies = [s for s in dir(strategies) if not s.startswith("__")]
+    for s in all_strategies:
+        cleaned = [x.title() for x in s.split("_")]
+        write(f"{s} | {' '.join(cleaned)}")
 
 
 def run(runs, write, parallel):
@@ -38,7 +45,11 @@ def run(runs, write, parallel):
 
 if __name__ == "__main__":
     runs = int(sys.argv[1])
-    file_name = "results.txt"
-    with open(file_name, "w") as f:
-        f.write("Strategy,Players,Owls,Actions,Suns,Won,Played,Elapsed\n")
-        run(runs, lambda x: f.write(x + "\n"), parallel=True)
+
+    strategy_file = "strategies.txt"
+    with open(strategy_file, "w") as f:
+        write_strategies(lambda x: f.write(x + "\n"))
+
+    result_file = "results.txt"
+    with open(result_file, "w") as f:
+        run(runs, lambda x: f.write(x + "\n"), parallel=False)

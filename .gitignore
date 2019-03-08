@@ -105,3 +105,5 @@ venv.bak/
 
 Analysis.xlsx
 results.txt
+results_processed.txt
+strategies.txt
