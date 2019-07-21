@@ -52,4 +52,4 @@ if __name__ == "__main__":
 
     result_file = "results.txt"
     with open(result_file, "w") as f:
-        run(runs, lambda x: f.write(x + "\n"), parallel=False)
+        run(runs, lambda x: f.write(x + "\n"), parallel=True)
