@@ -1,3 +1,3 @@
-[![Build Status](https://semaphoreci.com/api/v1/cmrudolph/simulation/branches/master/badge.svg)](https://semaphoreci.com/cmrudolph/simulation)
+[![Build Status](https://cmrudolph.semaphoreci.com/badges/simulation/branches/master.svg)](https://cmrudolph.semaphoreci.com/projects/simulation)
 
 # simulation
